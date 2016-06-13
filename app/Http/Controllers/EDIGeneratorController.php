@@ -15,6 +15,7 @@ class EDIGeneratorController extends Controller
      */
     public function EDI850Generator()
     {
+//        Lastly, I used the symbol ~ to separate EDI segments as it is the most common example online
         return view('pages.expo')->with([
             'ediDoc' =>  (new EDI850)->createEDI850(generateTestOrderArray())
         ]);

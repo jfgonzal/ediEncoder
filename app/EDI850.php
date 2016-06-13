@@ -7,12 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class EDI850 extends Model
 {
+//    Time and date variables
     protected $currentDate, $currentTime;
+
+//    Segment related variables
     protected $ISA, $GS, $ST, $BEG, $CUR, $REF, $SAC, $ITD, $DTM, $TD5, $extendedDataLoop,
         $identifierLoop, $productLoop, $CTT, $EDIDoc, $itemCounter, $SE, $GE, $IEA;
+
+//    I did not have enough time to thoroughly read through the entire document to understand
+//      proper error handling when limit is reached, thus these variables went unused.
     const SACMaxLoopLength = 25, extendedDataMaxLoopLength = 2, identificationMaxLoopLength = 4,
         PO1MaxLoopLength = 100000, PIDMaxLoopLength = 1000;
 
+//    The constructor initiates the time and date variables as well as the item counter
     public function __construct()
     {
         $this->currentDate = Carbon::now()->format('Ymd');
@@ -20,6 +27,7 @@ class EDI850 extends Model
         $this->itemCounter = 0;
     }
 
+//    this method parses through the array and builds each segment separately
     public function createEDI850($request)
     {
         foreach ($request as $ediSegment) {
@@ -68,10 +76,12 @@ class EDI850 extends Model
             }
 
         }
-
+// The assembling of the document is done right before it is
+//  returned to the controller for it to present to the view
         return $this->constructEDI850();
     }
 
+//    The following methods deal with constructing the segments
     public function setISA($isaData)
     {
         $this->ISA = 'ISA*00**00*ZZ*' . $isaData['senderId'] . '*12*' . $isaData['receiverId'] . '*' .
@@ -129,7 +139,7 @@ class EDI850 extends Model
     {
         $this->TD5 = 'TD5****' . $td5Data['transportMethod'] . '*' . $td5Data['routing'] . '*******ST*DS~';
     }
-
+// Looping through identifiers
     public function setIdentifierLoop($identifierData)
     {
         foreach ($identifierData as $identifierGroup) {
@@ -160,7 +170,7 @@ class EDI850 extends Model
             $this->identifierLoop .= $N1 . $N2 . $N3 . $N4 . $PER;
         }
     }
-
+//Looping through product loop
     public function setProductLoop($productData)
     {
         foreach($productData as $productSegments){
